@@ -645,9 +645,9 @@ def summary_report_overall(results: Dict, digits: int = 2) -> str:
     return report
 
 
-def summary_report_ents_indices(evaluation_agg_indices: Dict, error_schema: str, preds: Optional[List] = [[]]) -> str:
+def summary_report_ents_indices(evaluation_agg_indices: Dict, error_schema: str, preds: Optional[List] = [[]], true: Optional[List] = [[]]) -> str:
     """
-    Usage: print(summary_report_ents_indices(evaluation_agg_indices, 'partial', preds))
+    Usage: print(summary_report_ents_indices(evaluation_agg_indices, 'partial', preds, true))
     """
     report = ""
     for entity_type, entity_results in evaluation_agg_indices.items():
@@ -660,9 +660,14 @@ def summary_report_ents_indices(evaluation_agg_indices: Dict, error_schema: str,
             if indices:
                 for instance_index, entity_index in indices:
                     if preds is not [[]]:
-                        pred = preds[instance_index][entity_index]  # type: ignore
-                        prediction_info = f"Label={pred['label']}, Start={pred['start']}, End={pred['end']}"
-                        report += f"      - Instance {instance_index}, Entity {entity_index}: {prediction_info}\n"
+                        if category == 'missed_indices':
+                            true_ent = true[instance_index][entity_index]
+                            true_ent_info = f"Label={true_ent['label']}, Start={true_ent['start']}, End={true_ent['end']}"
+                            report += f"      - True Instance {instance_index}, Entity {entity_index}: {true_ent_info}\n"
+                        else:
+                            pred = preds[instance_index][entity_index]  # type: ignore
+                            prediction_info = f"Label={pred['label']}, Start={pred['start']}, End={pred['end']}"
+                            report += f"      - Pred Instance {instance_index}, Entity {entity_index}: {prediction_info}\n"
                     else:
                         report += f"      - Instance {instance_index}, Entity {entity_index}\n"
             else:
@@ -670,16 +675,14 @@ def summary_report_ents_indices(evaluation_agg_indices: Dict, error_schema: str,
     return report
 
 
-def summary_report_overall_indices(evaluation_indices: Dict, error_schema: str, preds: Optional[List] = [[]]) -> str:
+def summary_report_overall_indices(evaluation_indices: Dict, error_schema: str, preds: Optional[List] = [[]], true: Optional[List] = [[]]) -> str:
     """
-    Usage: print(summary_report_overall_indices(evaluation_indices, 'partial', preds))
+    Usage: print(summary_report_overall_indices(evaluation_indices, 'partial', preds, true))
     """
     report = ""
     assert error_schema in evaluation_indices, f"Error schema '{error_schema}' not found in the results."
-
     error_data = evaluation_indices[error_schema]
     report += f"Indices for error schema '{error_schema}':\n\n"
-
     for category, indices in error_data.items():
         category_name = category.replace("_", " ").capitalize()
         report += f"{category_name}:\n"
@@ -687,13 +690,17 @@ def summary_report_overall_indices(evaluation_indices: Dict, error_schema: str, 
             for instance_index, entity_index in indices:
                 if preds is not [[]]:
                     # Retrieve the corresponding prediction
-                    pred = preds[instance_index][entity_index]  # type: ignore
-                    prediction_info = f"Label={pred['label']}, Start={pred['start']}, End={pred['end']}"
-                    report += f"  - Instance {instance_index}, Entity {entity_index}: {prediction_info}\n"
+                    if category == 'missed_indices':
+                        pred = true[instance_index][entity_index]  # type: ignore
+                        prediction_info = f"Label={pred['label']}, Start={pred['start']}, End={pred['end']}"
+                        report += f"  - True Instance {instance_index}, Entity {entity_index}: {prediction_info}\n"
+                    else:
+                        pred = preds[instance_index][entity_index]  # type: ignore
+                        prediction_info = f"Label={pred['label']}, Start={pred['start']}, End={pred['end']}"
+                        report += f"  - Pred Instance {instance_index}, Entity {entity_index}: {prediction_info}\n"
                 else:
-                    report += f"  - Instance {instance_index}, Entity {entity_index}\n"
+                        report += f"  - Pred Instance {instance_index}, Entity {entity_index}\n"
         else:
             report += "  - None\n"
         report += "\n"
-
     return report
