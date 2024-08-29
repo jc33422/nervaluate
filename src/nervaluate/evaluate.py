@@ -250,17 +250,27 @@ def compute_metrics(  # type: ignore
 
                 # Scenario IV: Offsets match, but entity type is wrong
                 if true["start"] == pred["start"] and pred["end"] == true["end"] and true["label"] != pred["label"]:
+
                     # overall results
                     evaluation["strict"]["incorrect"] += 1
                     evaluation_ent_indices["strict"]["incorrect_indices"].append(
                         (instance_index, within_instance_index)
                     )
+
                     evaluation["ent_type"]["incorrect"] += 1
                     evaluation_ent_indices["ent_type"]["incorrect_indices"].append(
                         (instance_index, within_instance_index)
                     )
+
                     evaluation["partial"]["correct"] += 1
+                    evaluation_ent_indices["partial"]["correct_indices"].append(
+                        (instance_index, within_instance_index)
+                    )
+
                     evaluation["exact"]["correct"] += 1
+                    evaluation_ent_indices["exact"]["correct_indices"].append(
+                        (instance_index, within_instance_index)
+                    )
 
                     # aggregated by entity type results
                     evaluation_agg_entities_type[true["label"]]["strict"]["incorrect"] += 1
@@ -272,7 +282,14 @@ def compute_metrics(  # type: ignore
                         (instance_index, within_instance_index)
                     )
                     evaluation_agg_entities_type[true["label"]]["partial"]["correct"] += 1
+                    evaluation_agg_ent_indices[true["label"]]["partial"]["correct_indices"].append(
+                        (instance_index, within_instance_index)
+                    )
+
                     evaluation_agg_entities_type[true["label"]]["exact"]["correct"] += 1
+                    evaluation_agg_ent_indices[true["label"]]["exact"]["correct_indices"].append(
+                        (instance_index, within_instance_index)
+                    )
 
                     true_which_overlapped_with_pred.append(true)
                     found_overlap = True
@@ -293,6 +310,10 @@ def compute_metrics(  # type: ignore
                             (instance_index, within_instance_index)
                         )
                         evaluation["ent_type"]["correct"] += 1
+                        evaluation_ent_indices["ent_type"]["correct_indices"].append(
+                            (instance_index, within_instance_index)
+                        )
+
                         evaluation["partial"]["partial"] += 1
                         evaluation_ent_indices["partial"]["partial_indices"].append(
                             (instance_index, within_instance_index)
@@ -308,6 +329,10 @@ def compute_metrics(  # type: ignore
                             (instance_index, within_instance_index)
                         )
                         evaluation_agg_entities_type[true["label"]]["ent_type"]["correct"] += 1
+                        evaluation_agg_ent_indices[true["label"]]["ent_type"]["correct_indices"].append(
+                            (instance_index, within_instance_index)
+                        )                        
+
                         evaluation_agg_entities_type[true["label"]]["partial"]["partial"] += 1
                         evaluation_agg_ent_indices[true["label"]]["partial"]["partial_indices"].append(
                             (instance_index, within_instance_index)
